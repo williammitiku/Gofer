@@ -2,7 +2,7 @@ const { Admins, Admin } = require('../model/admin')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-// const bcrypt = require("bcryptjs");
+const clearCache = require("../services/cache");
 
 const adminController = {
    
@@ -35,6 +35,7 @@ const adminController = {
             return  res.status(200).json({status: "error", message: e.message})
         }
     },
+
     createAdmin: async (req, res) => {
         try {
             const  admin =req.body;
@@ -59,6 +60,8 @@ const adminController = {
             var newAdmin = await Admins.create(admin)
             if(!newAdmin) return res.status(200).json({status: "error",  message:"admin registration failed", admin: admin }); 
             
+            clearCache(Admins.collection.collectionName);
+
             await newAdmin.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if(!verificationCode || !defaultPassword) return res.status(200).json({status: "error", message: "operation failed. couldn't generate verification code"})
 
@@ -103,6 +106,8 @@ const adminController = {
             var newAdmin = await Admins.create(admin)
             if(!newAdmin) return res.status(200).json({status: "error",  message:"admin registration failed", admin: admin }); 
             
+            clearCache(Admins.collection.collectionName);
+
             await newAdmin.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if(!verificationCode || !defaultPassword) return res.status(200).json({status: "error", message: "operation failed. couldn't generate verification code"})
 
@@ -191,7 +196,6 @@ const adminController = {
         }
     },
     
-
     update: async (req, res) => {
         try {
             const admin  = req.admin;
@@ -218,6 +222,8 @@ const adminController = {
             // }
 
             const filter = (adminData.role === 1 && adminId) ? {_id: adminId} : {_id: admin.adminId}
+
+            clearCache(Admins.collection.collectionName);
 
             if(oldPassword && newPassword) {
                 
@@ -288,13 +294,10 @@ const adminController = {
         }
     },
 
-
-    
-
     listAllAdmin: async (req, res) => {
     try {
 
-        var admins = await Admins.find();
+        var admins = await Admins.find().cache();
         if(!admins) return res.status(200).json({status: "error",  message:"no Admins found"}); 
 
         return res.status(200).json({
@@ -307,46 +310,43 @@ const adminController = {
         console.log(e);
         return  res.status(500).json({status: "error", message: e.message})
     }
-},
+    },
 
-listAdmin: async (req, res) => {
-    try {
+    listAdmin: async (req, res) => {
+        try {
 
-        var admins = await Admins.find({role: "1"});
-        if(!admins) return res.status(200).json({status: "error",  message:"no Admins found"}); 
+            var admins = await Admins.find({role: "1"});
+            if(!admins) return res.status(200).json({status: "error",  message:"no Admins found"}); 
 
-        return res.status(200).json({
-            status: "success", 
-            message: 'success', 
-            admins: admins 
-        });
-    } 
-    catch (e) {
-        console.log(e);
-        return  res.status(500).json({status: "error", message: e.message})
-    }
-},
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                admins: admins 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
 
+    ListRestaurantAdmin: async (req, res) => {
+        try {
 
-ListRestaurantAdmin: async (req, res) => {
-    try {
+            var admins = await Admins.find({role: "0"});
+            if(!admins) return res.status(200).json({status: "error",  message:"no Admins found"}); 
 
-        var admins = await Admins.find({role: "0"});
-        if(!admins) return res.status(200).json({status: "error",  message:"no Admins found"}); 
-
-        return res.status(200).json({
-            status: "success", 
-            message: 'success', 
-            admins: admins 
-        });
-    } 
-    catch (e) {
-        console.log(e);
-        return  res.status(500).json({status: "error", message: e.message})
-    }
-},
-
-
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                admins: admins 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
 
     changeAdminStatus: async (req, res) => {
         try {
@@ -364,7 +364,10 @@ ListRestaurantAdmin: async (req, res) => {
                     },
                 },
                 {new:true}
-                );
+            );
+
+            clearCache(Admins.collection.collectionName);
+            
             if (result) return res.status(200).json({status: "success", message:"Admin status changed"});
     
             return res.status(200).json({status: "error",  message:"Changing Admin status failed" }); 
@@ -374,10 +377,6 @@ ListRestaurantAdmin: async (req, res) => {
         }
     },
     
-    
-    
-    
-
 }
 const createAccessToken = (id) =>{
     console.info(id)

@@ -1,6 +1,6 @@
 const ActiveDrivers = require('../model/activeDriver')
 const distance = require('../helper/distance')
-
+const clearCache = require("../services/cache");
 
 const activeDriverController = {
 
@@ -9,20 +9,15 @@ const activeDriverController = {
             // const { driverId, socketId, location }  = req.body;
             
             var existingDriver = await ActiveDrivers.findOne({driverId: driverId});
-            if(existingDriver) return;// res.status(200).json({status: "error",  message:"activating driver failed"}); 
-    
+            if(existingDriver) return;
+
             var newActiveDriver = await ActiveDrivers.create({
                     driverId: driverId,
                     socketId: socketId, 
                     location: location
                 });
             
-                // if(!newActiveDriver) return res.status(200).json({status: "error",  message:"activating driver failed"}); 
-
-            // return res.status(200).json({
-            //     status: "success", 
-            //     message: 'driver activated successfully'
-            // });
+            clearCache(ActiveDrivers.collection.collectionName);
         } 
         catch (e) {
             console.log(e);
@@ -52,7 +47,7 @@ const activeDriverController = {
 
             if(!driver) return res.status(200).json({status: "error", message: 'driver not found'})
 
-            const updatedDriver = await Foods.findOneAndUpdate(
+            const updatedDriver = await ActiveDrivers.findOneAndUpdate(
                 {driverId: driverId},
                     {
                         $set: {
@@ -64,6 +59,8 @@ const activeDriverController = {
             
             await updatedDriver.save();
 
+            clearCache(ActiveDrivers.collection.collectionName);
+            
             return updatedDriver
         } 
         catch (e) {
@@ -76,6 +73,9 @@ const activeDriverController = {
         try {
 
             const result = await ActiveDrivers.deleteOne({driverId: driverId})
+
+            clearCache(ActiveDrivers.collection.collectionName);
+
             if (result.deletedCount === 1) {
                 return "success - removing driver from active drivers";
             } else {
@@ -91,7 +91,7 @@ const activeDriverController = {
     getAll: async (req, res) => {
         try {
 
-            var activeDrivers = await ActiveDrivers.find();
+            var activeDrivers = await ActiveDrivers.find().cache();
             if(!activeDrivers) return res.status(200).json({status: "error",  message:"no active drivers found"}); 
     
             return res.status(200).json({
@@ -109,7 +109,7 @@ const activeDriverController = {
     getNearest: async (latitude, longitude ) => {
         try {
 
-            var activeDrivers = await ActiveDrivers.find();
+            var activeDrivers = await ActiveDrivers.find().cache();
             if(!activeDrivers) return res.status(200).json({status: "error",  message:"no active drivers found"}); 
     
             var nearByDrivers = [];

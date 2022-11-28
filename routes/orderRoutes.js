@@ -21,6 +21,10 @@ router.get("/getAllOrdersToday", auth, orderController.getAllOrdersToday)
 router.get("/getAllOrdersWeekly", auth, orderController.getAllOrdersWeekly)
 router.get("/getAllOrdersMonthly", auth, orderController.getAllOrdersMonthly)
 router.post("/ConfirmDelivery", authA, authAdmins, orderController.ConfirmDelivery)
+router.post("/getAllOrdersTodayByRestaurant", authA, orderController.getAllOrdersTodayByRestaurant)
+router.post("/getAllOrdersWeeklyByRestaurant", authA, orderController.getAllOrdersWeeklyByRest)
+router.post("/getAllOrdersMonthlyByRestaurant", authA, orderController.getAllOrdersMonthlyByRest)
+
 
 
 router.post("/getOrdersByRestaurant", authA, authRestaurant, orderController.getOrdersByRestaurant)

@@ -2,10 +2,9 @@ const { Users } = require('../model/user')
 const Rides = require('../model/ride')
 const { Drivers } = require('../model/driver')
 const activeDriverController = require('./activeDriverController')
-const socket = require('../socket')
-
-const initialFee = 75;
-const pricePerKilometer = 10;
+const socket = require('../services/socket')
+const Prices = require('../model/price')
+const clearCache = require("../services/cache");
 
 const CancelBy = {
     USER : 'user',
@@ -18,7 +17,9 @@ const rideController = {
         const { distance } = req.body;
         
         try {
-            var totalPrice = initialFee + (pricePerKilometer * distance);
+            var ridePrice = await Prices.findOne({"type": "ride"}).cache();
+
+            var totalPrice = ridePrice.initialPrice + (ridePrice.pricePerKM * distance);
 
             res.status(200).json({message: "success", totalPrice: totalPrice})
         } catch (e) {
@@ -41,6 +42,7 @@ const rideController = {
 
             var driverData = await Drivers.findById(nearByDrivers[0].driverId);
 
+
             var rideInfo = await Rides.create({
                 rideCode: generateRideCode(),
                 userId: req.user.userId,
@@ -61,6 +63,8 @@ const rideController = {
                 console.log('saving trip info failed')
                 return res.status(200).json({status: "error", message: "driver assigning failed"})
             }
+
+            clearCache(Rides.collection.collectionName);
 
             //Send to information to the driver
             socket.sendMessage(nearByDrivers[0].socketId, "work-assigned", rideInfo);
@@ -89,6 +93,8 @@ const rideController = {
                 await updatedRide.$push( { declinedDrivers: { driverId: decliningDriverId, cancelReason: cancelReason} })
             }
             await updatedRide.save();
+            
+            clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {
@@ -112,6 +118,8 @@ const rideController = {
             );
 
             await updatedRide.save();
+            
+            clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {
@@ -123,7 +131,7 @@ const rideController = {
     cancelRide: async (rideCode, reason) => {
         
         try {
-
+            
             const updatedRide = await Rides.findOneAndUpdate(
                 {rideCode: rideCode},
                 {
@@ -137,6 +145,8 @@ const rideController = {
             );
 
             await updatedRide.save();
+         
+            clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {
@@ -160,6 +170,8 @@ const rideController = {
             );
 
             await updatedRide.save();
+            
+            clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {

@@ -23,26 +23,27 @@ const orderController = {
             //console.log(foodinfo.foodPrice)
             var deliveryPrice = 0;
             var foodPrice = 0;
-            const foodInfo = await Foods.find({foodId: orders.foodId});
+            const foodInfo = await Foods.findOne({foodId: orders.foodId});
+            
             orders.forEach(async (order) => {
                 var food = foods.find(function (item) {
-                    return item.code == order.foodId;
+                    return item.foodId == order.foodId;
                   });
 
                 if(food)
                     foodPrice = foodPrice + (order.quantity * food.foodPrice)
               })
-              const restaurantInfo = await Restaurants.findOne({restId: restId})
-          
+              const restaurantInfo = await Restaurants.findOne({restId: restId}, {"image":0})
+
+
               if(restaurantInfo && restaurantInfo.location) {
                 var _distance = distance.calculate(
                     location.latitude, location.longitude, restaurantInfo.location.latitude, restaurantInfo.location.longitude)
-
-                if(_distance > 10) deliveryPrice = 30
-                else if(_distance > 20) deliveryPrice = 50
-                else if(_distance > 30) deliveryPrice = 70
+                if(_distance < 10) deliveryPrice = 30
+                else if(_distance < 20) deliveryPrice = 50
+                else if(_distance <  30) deliveryPrice = 70
+         
               }
-
 
             var newOrder = await Orders.create({
                 orderId: generateOrderId(),
@@ -78,17 +79,14 @@ const orderController = {
                     order: newOrder 
                 });
             }
-            
         } 
         catch (e) {
             console.log(e);
             return  res.status(500).json({status: "error", message: e.message})
         }
     },
-
     getMyOrders: async (req, res) => {
         try {
-
             var orders = await Orders.find({userId: req.user.userId})
             if(!orders) return res.status(200).json({status: "error",  message:"no orders found"}); 
     
@@ -262,6 +260,30 @@ const orderController = {
         }
     },
 
+    getAllOrdersTodayByRestaurant: async (req, res) => {
+        try {
+            const {restId} = req.body;
+            var now = new Date();
+             var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            var orders = await Orders.find({restId: restId, createdAt: {$gte: startOfToday}});
+            var ordersCount=await Orders.find({restId: restId, createdAt: {$gte: startOfToday}}).count();
+
+            if(!orders) return res.status(200).json({status: "Empty List",  message:"no orders found"}); 
+    
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                ordersCount, 
+                orders: orders 
+             
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
+
     getAllOrdersWeekly: async (req, res) => {
         try {
 
@@ -275,6 +297,30 @@ const orderController = {
                 status: "success", 
                 message: 'success', 
                 orders: orders 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
+
+    getAllOrdersWeeklyByRest: async (req, res) => {
+        try {
+            const {restId} = req.body;
+            var d = new Date();
+            d.setDate(d.getDate() -7);
+             var orders= await Orders.find({restId: restId, createdAt : {$gte: d}});
+             var ordersCount = await Orders.find({restId: restId, createdAt : {$gte: d}}).count();
+
+
+            if(!orders) return res.status(200).json({status: "error",  message:"no orders found"}); 
+    
+            return res.status(200).json({
+                status: "success", 
+                message: 'success',
+                ordersCount,
+                orders: orders
             });
         } 
         catch (e) {
@@ -303,6 +349,31 @@ const orderController = {
             return  res.status(500).json({status: "error", message: e.message})
         }
     },
+
+    getAllOrdersMonthlyByRest: async (req, res) => {
+        try {
+            const {restId} = req.body;
+            var d = new Date();
+            d.setDate(d.getDate() -30);
+            var orders = await Orders.find({restId, restId, createdAt : {$gte: d}}).count();
+            var ordersCount = await Orders.find({restId, restId, createdAt : {$gte: d}});
+
+
+            if(!orders) return res.status(200).json({status: "error",  message:"no orders found"}); 
+    
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                ordersCount,
+                orders: orders 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
+
 
     assignBiker: async (req, res) => {
         try{

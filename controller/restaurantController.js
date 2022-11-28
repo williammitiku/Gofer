@@ -1,4 +1,5 @@
 const { Restaurants } = require('../model/restaurant')
+const clearCache = require("../services/cache");
 
 const restaurantController = {
     
@@ -24,6 +25,8 @@ const restaurantController = {
 
                     if(!newRestaurant) return res.status(200).json({status: "error", message: "Restaurant registration failed" });
 
+                    clearCache(Restaurants.collection.collectionName);
+
                     return res.status(200).json({status: "success", message: "Restaurant registered", restaurant: newRestaurant });
                 }
                 catch(error) {
@@ -38,16 +41,19 @@ const restaurantController = {
         }
     },
 
-
     create: async (req, res) => {
         try {
             const  restaurant  = req.body;
             var rest2 = generateRestaurantId('REST');
             console.log(rest2);
             restaurant.restId=rest2;
+
+
             var newRestaurant = await Restaurants.create(restaurant);
             if(!newRestaurant) return res.status(200).json({status: "error",  message:"Restaurant  creating failed"}); 
     
+            clearCache(Restaurants.collection.collectionName);
+
             return res.status(200).json({
                 status: "success", 
                 message: 'New Restaurant Information created successfully', 
@@ -61,6 +67,23 @@ const restaurantController = {
     },
 
     getAll: async (req, res) => {
+        try {
+
+            var restaurants = await Restaurants.find().cache();
+            if(!restaurants) return res.status(200).json({status: "error",  message:"no Restaurant found"}); 
+    
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                restaurants: restaurants 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
+    getAllRestaurants: async (req, res) => {
         try {
 
             var restaurants = await Restaurants.find();
@@ -77,14 +100,15 @@ const restaurantController = {
             return  res.status(500).json({status: "error", message: e.message})
         }
     },
-
     delete: async (req, res) => {
         try {
             const {restId}  = req.body;
 
-            var restaurant = await Restaurants.find({restId: restId});
+            var restaurant = await Restaurants.find({restId: restId}).cache();
             if(!restaurant) return res.status(200).json({status: "error",  message:"delivery time not found"}); 
     
+            clearCache(Restaurants.collection.collectionName);
+            
             const result = await Restaurants.deleteOne({restId: restId})
             if (result.deletedCount === 1) {
                 return res.status(200).json({status: "success", message:"Restaurant Information deleted" });
@@ -100,21 +124,23 @@ const restaurantController = {
 
     update: async (req, res) => {
         try{
-          
-            const { 
+            const {
                 restId,
                 restaurantName,
                 yearStarted,
                 ownerFullName,
                 email,
                 ownerPhoneNumber,
+                location,
                 isDisabled
             } = req.body;
             
-            const restaurant = await Restaurants.findOne({restId: restId})
+            const restaurant = await Restaurants.findOne({restId: restId}).cache()
 
             if(!restaurant) return res.status(200).json({status: "error", message: 'Restaurant Information not found'})
 
+            clearCache(Restaurants.collection.collectionName);
+            
             const newRestaurant = await Restaurants.findOneAndUpdate(
                 {restId: restId},
                     {
@@ -124,7 +150,8 @@ const restaurantController = {
                             ownerFullName,
                             email,
                             ownerPhoneNumber,
-                            isDisabled
+                            isDisabled,
+                            location
                         },
                     },
                     {new:true}
@@ -144,7 +171,7 @@ const restaurantController = {
     getNearyBy: async (req, res) => {
         try {
             const { currentLocation } = req.body;
-            var restaurants = await Restaurants.find();
+            var restaurants = await Restaurants.find({},{'image':0});
             if(!restaurants) return res.status(200).json({status: "error",  message:"no Restaurant found"}); 
     
             var nearByRestaurants = [];
@@ -171,8 +198,6 @@ const restaurantController = {
             return  res.status(500).json({status: "error", message: e.message})
         }
     },
-    
-    
     
 }
 

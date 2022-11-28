@@ -16,6 +16,8 @@ router.post('/verify',authM, messengerController.verify)
 router.post('/forgetPassword', messengerController.forgetPassword)
 router.post('/deleteMessenger', authM, messengerController.deleteMessenger)
 router.post('/changeMessengerStatus',authM,  messengerController.changeMessengerStatus)
+router.get('/listMessenger',authM,  messengerController.listMessenger)
+
 router.get('/GetAllBikeMessenger', authA, authAdmins, messengerController.GetAllBikeMessenger)
 router.get('/GetAllCarMessenger', authA, authAdmins, messengerController.GetAllCarMessenger)
 

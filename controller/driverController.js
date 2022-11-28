@@ -2,15 +2,15 @@ const { Drivers } = require('../model/driver')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-// const bcrypt = require("bcryptjs");
+const clearCache = require("../services/cache");
 
 const driverController = {
    
     login: async (req, res) => {
-        const { email, password, deviceId } = req.body;
+        const { phoneNumber, password, deviceId } = req.body;
         
         try {
-            var driverData = await Drivers.findOne({ email: email });
+            var driverData = await Drivers.findOne({ phoneNumber: phoneNumber });
             if (!driverData) {
               return res.status(200).json({status: "error", message: "Driver not found" });
             }
@@ -64,6 +64,8 @@ const driverController = {
             var newDriver = await Drivers.create(driver)
             if(!newDriver) return res.status(200).json({status: "error",  message:"Driver registration failed", driver: driver }); 
             
+            clearCache(Drivers.collection.collectionName);
+
             await newDriver.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if(!verificationCode || !defaultPassword) return res.status(200).json({status: "error", message: "operation failed. couldn't generate verification code"})
 
@@ -151,7 +153,6 @@ const driverController = {
             return  res.status(500).json({message: e.message})
         }
     },
-    
 
     update: async (req, res) => {
         try {
@@ -173,6 +174,8 @@ const driverController = {
                 return res.status(200).json({status: "error", message: 'user not found'})
             }
             
+            clearCache(Drivers.collection.collectionName);
+
             // if(profileImage) {
             //     var newImage = imageConverter.convert([profileImage]);
             //     profileImage = newImage[0];
@@ -249,80 +252,77 @@ const driverController = {
         }
     },
 
+    deleteDriver: async (req, res) => {
+        try {
+            const { email } =req.body;
 
+            const driver = await Drivers.findOne({email: email});
+            
+            if (!driver) {
+                return res.status(200).json({status: "error", message: "Driver not found" });
+            }
 
-deleteDriver: async (req, res) => {
-    try {
-        const { email } =req.body;
+            const result = await Drivers.deleteOne({email: email})
+            
+            clearCache(Drivers.collection.collectionName);
 
-        const driver = await Drivers.findOne({email: email});
-        
-        if (!driver) {
-            return res.status(200).json({status: "error", message: "Driver not found" });
-          }
-
-        const result = await Drivers.deleteOne({email: email})
-        if (result.deletedCount === 1) {
-            return res.status(200).json({status: "success", message:"Driver deleted" });
-        } else {
-            return res.status(200).json({status: "error",  message:"Deleting Driver failed" }); 
+            if (result.deletedCount === 1) {
+                return res.status(200).json({status: "success", message:"Driver deleted" });
+            } else {
+                return res.status(200).json({status: "error",  message:"Deleting Driver failed" }); 
+            }
+            
+        } catch (e) {
+            console.log(e);
+            return  res.status(500).json({message: e.message})
         }
-        
-    } catch (e) {
-        console.log(e);
-        return  res.status(500).json({message: e.message})
-    }
-},
+    },
 
+    changeDriverStatus: async (req, res) => {
+        try {
+            
+            const { driverId, isDisabled } = req.body;
 
+            const driver = await Drivers.findById(driverId)
+            if(!driver) return res.status(200).json({status: "error", message: "Driver not found" });
 
-changeDriverStatus: async (req, res) => {
-    try {
-        
-        const { driverId, isDisabled } = req.body;
-
-        const driver = await Drivers.findById(driverId)
-        if(!driver) return res.status(200).json({status: "error", message: "Driver not found" });
-
-        const result = await Drivers.findOneAndUpdate(
-            {_id: driverId},
-            {
-                $set: {
-                  isDisabled: isDisabled
+            const result = await Drivers.findOneAndUpdate(
+                {_id: driverId},
+                {
+                    $set: {
+                    isDisabled: isDisabled
+                    },
                 },
-            },
-            {new:true}
-            );
-        if (result) return res.status(200).json({status: "success", message:"Driver status changed"});
+                {new:true}
+                );
 
-        return res.status(200).json({status: "error",  message:"Changing Driver status failed" }); 
-    } catch (e) {
-        console.log(e);
-        return  res.status(500).json({message: e.message})
-    }
-},
+            clearCache(Drivers.collection.collectionName);
+            if (result) return res.status(200).json({status: "success", message:"Driver status changed"});
 
+            return res.status(200).json({status: "error",  message:"Changing Driver status failed" }); 
+        } catch (e) {
+            console.log(e);
+            return  res.status(500).json({message: e.message})
+        }
+    },
 
+    listDrivers: async (req, res) => {
+        try {
 
+            var drivers = await Drivers.find().cache();
+            if(!drivers) return res.status(200).json({status: "error",  message:"no Driver found"}); 
 
-listDrivers: async (req, res) => {
-    try {
-
-        var drivers = await Drivers.find();
-        if(!drivers) return res.status(200).json({status: "error",  message:"no Driver found"}); 
-
-        return res.status(200).json({
-            status: "success", 
-            message: 'success', 
-            drivers: drivers 
-        });
-    } 
-    catch (e) {
-        console.log(e);
-        return  res.status(500).json({status: "error", message: e.message})
-    }
-},
-
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                drivers: drivers 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
 
     refreshToken: (req, res) =>{
         try {
@@ -347,8 +347,7 @@ listDrivers: async (req, res) => {
             })
         }
     },
-    
-  
+      
 }
 
 const createAccessToken = (id) =>{

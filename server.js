@@ -33,6 +33,7 @@ const messengerRoutes = require('./routes/messengerRoutes')
 const bikerRoutes = require('./routes/bikerRoutes')
 const orderRoutes = require('./routes/orderRoutes')
 const paymentRoutes = require('./routes/paymentRoutes')
+const priceRoutes = require('./routes/priceRoutes')
 
 app.use('/api/user', userRoutes)
 app.use('/api/restaurant', restaurantRoutes)
@@ -44,6 +45,7 @@ app.use('/api/biker',bikerRoutes)
 app.use('/api/ride', rideRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/payment', paymentRoutes)
+app.use('/api/price', priceRoutes)
 
 
 const http = require('http');

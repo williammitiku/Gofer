@@ -2,7 +2,7 @@ const { Bikers } = require('../model/biker')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-// const bcrypt = require("bcryptjs");
+const clearCache = require("../services/cache");
 
 const bikerController = {
    
@@ -23,8 +23,6 @@ const bikerController = {
                   return res.status(200).json({status: "error", message: "Incorrect password" });
               }
 
-            
-              
               const token = createAccessToken(bikerData._id)
               const refreshToken = createRefreshToken(bikerData._id)
   
@@ -35,12 +33,8 @@ const bikerController = {
             return  res.status(200).json({status: "error", message: e.message})
         }
     },
-
-
-
-
-    
-  createBiker: async (req, res) => {
+ 
+    createBiker: async (req, res) => {
         try {
             const biker =req.body;
            // var driver2 = generateDriverId('Driver');
@@ -67,6 +61,8 @@ const bikerController = {
             var newBiker = await Bikers.create(biker)
             if(!newBiker) return res.status(200).json({status: "error",  message:"Biker registration failed", biker: biker }); 
             
+            clearCache(Bikers.collection.collectionName);
+
             await newBiker.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if(!verificationCode || !defaultPassword) return res.status(200).json({status: "error", message: "operation failed. couldn't generate verification code"})
 
@@ -87,8 +83,6 @@ const bikerController = {
         }
     },
 
-
-    
     verify: async (req, res) => {
         const { verificationCode } = req.body;
         
@@ -157,80 +151,78 @@ const bikerController = {
         }
     },
     
+    deleteBiker: async (req, res) => {
+        try {
+            const { email } =req.body;
 
-  
+            const biker = await Bikers.findOne({email: email});
+            
+            if (!biker) {
+                return res.status(200).json({status: "error", message: "Biker not found" });
+            }
 
-deleteBiker: async (req, res) => {
-    try {
-        const { email } =req.body;
+            const result = await Bikers.deleteOne({email: email})
 
-        const biker = await Bikers.findOne({email: email});
-        
-        if (!biker) {
-            return res.status(200).json({status: "error", message: "Biker not found" });
-          }
+            clearCache(Bikers.collection.collectionName);
 
-        const result = await Bikers.deleteOne({email: email})
-        if (result.deletedCount === 1) {
-            return res.status(200).json({status: "success", message:"Biker deleted" });
-        } else {
-            return res.status(200).json({status: "error",  message:"Deleting Biker failed" }); 
+            if (result.deletedCount === 1) {
+                return res.status(200).json({status: "success", message:"Biker deleted" });
+            } else {
+                return res.status(200).json({status: "error",  message:"Deleting Biker failed" }); 
+            }
+            
+        } catch (e) {
+            console.log(e);
+            return  res.status(500).json({message: e.message})
         }
-        
-    } catch (e) {
-        console.log(e);
-        return  res.status(500).json({message: e.message})
-    }
-},
+    },
 
+    changeBikerStatus: async (req, res) => {
+        try {
+            
+            const { bikerId, isDisabled } = req.body;
 
+            const biker = await Bikers.findById(bikerId)
+            if(!biker) return res.status(200).json({status: "error", message: "Biker not found" });
 
-changeBikerStatus: async (req, res) => {
-    try {
-        
-        const { bikerId, isDisabled } = req.body;
-
-        const biker = await Bikers.findById(bikerId)
-        if(!biker) return res.status(200).json({status: "error", message: "Biker not found" });
-
-        const result = await Bikers.findOneAndUpdate(
-            {_id: bikerId},
-            {
-                $set: {
-                  isDisabled: isDisabled
+            const result = await Bikers.findOneAndUpdate(
+                {_id: bikerId},
+                {
+                    $set: {
+                    isDisabled: isDisabled
+                    },
                 },
-            },
-            {new:true}
+                {new:true}
             );
-        if (result) return res.status(200).json({status: "success", message:"Biker status changed"});
+            
+            clearCache(Bikers.collection.collectionName);
+            
+            if (result) return res.status(200).json({status: "success", message:"Biker status changed"});
 
-        return res.status(200).json({status: "error",  message:"Changing Biker status failed" }); 
-    } catch (e) {
-        console.log(e);
-        return  res.status(500).json({message: e.message})
-    }
-},
+            return res.status(200).json({status: "error",  message:"Changing Biker status failed" }); 
+        } catch (e) {
+            console.log(e);
+            return  res.status(500).json({message: e.message})
+        }
+    },
 
+    listBiker: async (req, res) => {
+        try {
 
+            var bikers = await Bikers.find().cache();
+            if(!bikers) return res.status(200).json({status: "error",  message:"no bikers found"}); 
 
-
-listBiker: async (req, res) => {
-    try {
-
-        var bikers = await Bikers.find();
-        if(!bikers) return res.status(200).json({status: "error",  message:"no bikers found"}); 
-
-        return res.status(200).json({
-            status: "success", 
-            message: 'success', 
-            bikers: bikers 
-        });
-    } 
-    catch (e) {
-        console.log(e);
-        return  res.status(500).json({status: "error", message: e.message})
-    }
-},
+            return res.status(200).json({
+                status: "success", 
+                message: 'success', 
+                bikers: bikers 
+            });
+        } 
+        catch (e) {
+            console.log(e);
+            return  res.status(500).json({status: "error", message: e.message})
+        }
+    },
 
     refreshToken: (req, res) =>{
         try {
@@ -255,7 +247,6 @@ listBiker: async (req, res) => {
             })
         }
     },
-    
   
 }
 
@@ -266,6 +257,7 @@ const createAccessToken = (id) =>{
 const createRefreshToken = (id) => {
     return jwt.sign({ bikerId: id }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "365d"});
 }
+
 function generateBikerId (name) {
     var result           = '';
     var characters       = '0123456789';
@@ -275,4 +267,5 @@ function generateBikerId (name) {
     }
     return name.trim().substring(0,6).toUpperCase() + parseInt(Math.random() * (999 - 100) + 100).toString()+ result.toUpperCase();
 };
+
 module.exports = bikerController;

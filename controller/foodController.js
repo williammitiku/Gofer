@@ -1,4 +1,5 @@
 const {Foods} = require('../model/food')
+const clearCache = require("../services/cache");
 
 const foodController = {
     
@@ -12,6 +13,8 @@ const foodController = {
             var newFood = await Foods.create(food);
             if(!newFood) return res.status(200).json({status: "error",  message:"Food  creating failed"}); 
     
+            clearCache(Foods.collection.collectionName);
+
             return res.status(200).json({
                 status: "success", 
                 message: 'Food Information created successfully', 
@@ -27,7 +30,7 @@ const foodController = {
     getAll: async (req, res) => {
         try {
          
-            var foods = await Foods.find();
+            var foods = await Foods.find().cache();
             if(!foods) return res.status(200).json({status: "error",  message:"no Food found"}); 
     
             return res.status(200).json({
@@ -44,10 +47,9 @@ const foodController = {
 
     getAllCategory: async (req, res) => {
         try {
-         
+            
             var foods = await Foods.find({}, {"foodCategory":1});
             if(!foods) return res.status(200).json({status: "error",  message:"no Food found"}); 
-    
             return res.status(200).json({
                 status: "success", 
                 message: 'success', 
@@ -59,6 +61,7 @@ const foodController = {
             return  res.status(500).json({status: "error", message: e.message})
         }
     },
+
     getFoodByRestaurant: async (req, res) => {
         try {
             const fooda = req.body;
@@ -96,7 +99,6 @@ const foodController = {
         }
     },
 
-
    update: async (req, res) => {
         try{
           
@@ -105,6 +107,7 @@ const foodController = {
                 foodName,
                 foodCategory,
                 foodPrice,
+                foodRecipe,
                 additionalInformation,
                 isDisabled
             } = req.body;
@@ -120,6 +123,7 @@ const foodController = {
                             foodName,
                             foodCategory,
                             foodPrice,
+                            foodRecipe,
                             additionalInformation,
                             isDisabled
                         },
@@ -129,7 +133,9 @@ const foodController = {
             
             await newFood.save();
 
-            if(newFood) return res.status(200).json({status: "error", message: "Food Information updated successfully", food: newFood});
+            clearCache(Foods.collection.collectionName);
+
+            if(newFood) return res.status(200).json({status: "success", message: "Food Information updated successfully", food: newFood});
             else return res.status(200).json({status: "error", message: "Food Information update failed"});
         } 
         catch (e) {
@@ -146,6 +152,9 @@ const foodController = {
             if(!food) return res.status(200).json({status: "error",  message:"Food not found"}); 
     
             const result = await Foods.deleteOne({foodId: foodId})
+
+            clearCache(Foods.collection.collectionName);
+            
             if (result.deletedCount === 1) {
                 return res.status(200).json({status: "success", message:"Food Information deleted" });
             } else {
