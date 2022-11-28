@@ -2,7 +2,7 @@ const { Bikers } = require('../model/biker')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const bikerController = {
    
@@ -61,7 +61,7 @@ const bikerController = {
             var newBiker = await Bikers.create(biker)
             if(!newBiker) return res.status(200).json({status: "error",  message:"Biker registration failed", biker: biker }); 
             
-            clearCache(Bikers.collection.collectionName);
+           // clearCache(Bikers.collection.collectionName);
 
             await newBiker.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if(!verificationCode || !defaultPassword) return res.status(200).json({status: "error", message: "operation failed. couldn't generate verification code"})
@@ -163,7 +163,7 @@ const bikerController = {
 
             const result = await Bikers.deleteOne({email: email})
 
-            clearCache(Bikers.collection.collectionName);
+           // clearCache(Bikers.collection.collectionName);
 
             if (result.deletedCount === 1) {
                 return res.status(200).json({status: "success", message:"Biker deleted" });
@@ -195,7 +195,7 @@ const bikerController = {
                 {new:true}
             );
             
-            clearCache(Bikers.collection.collectionName);
+           // clearCache(Bikers.collection.collectionName);
             
             if (result) return res.status(200).json({status: "success", message:"Biker status changed"});
 
@@ -209,7 +209,8 @@ const bikerController = {
     listBiker: async (req, res) => {
         try {
 
-            var bikers = await Bikers.find().cache();
+           // var bikers = await Bikers.find().cache();
+           var bikers = await Bikers.find();
             if(!bikers) return res.status(200).json({status: "error",  message:"no bikers found"}); 
 
             return res.status(200).json({

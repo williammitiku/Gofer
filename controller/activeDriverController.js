@@ -1,6 +1,6 @@
 const ActiveDrivers = require('../model/activeDriver')
 const distance = require('../helper/distance')
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const activeDriverController = {
 
@@ -17,7 +17,7 @@ const activeDriverController = {
                     location: location
                 });
             
-            clearCache(ActiveDrivers.collection.collectionName);
+          //  clearCache(ActiveDrivers.collection.collectionName);
         } 
         catch (e) {
             console.log(e);
@@ -59,7 +59,7 @@ const activeDriverController = {
             
             await updatedDriver.save();
 
-            clearCache(ActiveDrivers.collection.collectionName);
+            //clearCache(ActiveDrivers.collection.collectionName);
             
             return updatedDriver
         } 
@@ -74,7 +74,7 @@ const activeDriverController = {
 
             const result = await ActiveDrivers.deleteOne({driverId: driverId})
 
-            clearCache(ActiveDrivers.collection.collectionName);
+          //  clearCache(ActiveDrivers.collection.collectionName);
 
             if (result.deletedCount === 1) {
                 return "success - removing driver from active drivers";
@@ -91,7 +91,8 @@ const activeDriverController = {
     getAll: async (req, res) => {
         try {
 
-            var activeDrivers = await ActiveDrivers.find().cache();
+          //  var activeDrivers = await ActiveDrivers.find().cache();
+            var activeDrivers = await ActiveDrivers.find();
             if(!activeDrivers) return res.status(200).json({status: "error",  message:"no active drivers found"}); 
     
             return res.status(200).json({
@@ -109,7 +110,8 @@ const activeDriverController = {
     getNearest: async (latitude, longitude ) => {
         try {
 
-            var activeDrivers = await ActiveDrivers.find().cache();
+            //var activeDrivers = await ActiveDrivers.find().cache();
+            var activeDrivers = await ActiveDrivers.find();
             if(!activeDrivers) return res.status(200).json({status: "error",  message:"no active drivers found"}); 
     
             var nearByDrivers = [];

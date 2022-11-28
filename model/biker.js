@@ -38,7 +38,7 @@ const Biker = {
     required: true,
     trim: true,
     lowercase: true,
-    unique: true,
+    unique: false,
     validate: {
       validator: function (v) {
         return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);

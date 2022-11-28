@@ -1,5 +1,5 @@
 const Prices = require('../model/price')
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const priceController = {
 
@@ -14,7 +14,7 @@ const priceController = {
 
             if(!newPrice) return res.status(200).json({status: "error",  message:"adding price failed" }); 
             
-            clearCache(Prices.collection.collectionName);
+           // clearCache(Prices.collection.collectionName);
 
             return res.status(200).json({
                 status: "success", 
@@ -32,7 +32,8 @@ const priceController = {
 
         try {
             
-            const prices = await Prices.find().cache()
+            //const prices = await Prices.find().cache()
+            const prices = await Prices.find()
 
             if(!prices) return res.status(200).json({status: "error",  message:"no price data found" }); 
             
@@ -66,7 +67,7 @@ const priceController = {
             );
             
             if(updatedPrice) {
-                clearCache(Prices.collection.collectionName);
+               // clearCache(Prices.collection.collectionName);
 
                 res.status(200).json({status: "success", message: "price updated" });
             }

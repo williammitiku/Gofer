@@ -1,11 +1,22 @@
- POST http://localhost:4000/api/user/createUser HTTP/1.1
+ POST http://localhost:4000/api/order/create HTTP/1.1
 content-type: application/json
 
 {
-    "email": "iscan@driver.com  ",
-    "password": "12345",
-    "firstName": "asd",
-    "lastName":"sd",
-    "phoneNumber":"090909"
+    "orders" : [
+        {
+            "foodId": "FOOD489979",
+            "quantity": 1
+        },
+        {
+            "foodId": "FOOD154423",
+            "quantity": 1
+        }
+    ],
+    "location": {
+        "latitude": 8.985466595672115,
+        "longitude": 38.78871550297858
+    },
+    "paymentType": 1,
+    "restId": "REST521415"
 }
  

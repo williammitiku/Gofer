@@ -51,9 +51,11 @@ app.use('/api/price', priceRoutes)
 const http = require('http');
 const httpServer = http.createServer(app);
 
-const socket = require('./socket')
+const socket = require('./services/socket')
 socket.init(httpServer);
 
+// const cache = require("./services/cache");
+// cache.init();
 
 // app.unsubscribe(cors());
 // Certificate

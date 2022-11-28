@@ -4,7 +4,7 @@ const { Drivers } = require('../model/driver')
 const activeDriverController = require('./activeDriverController')
 const socket = require('../services/socket')
 const Prices = require('../model/price')
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const CancelBy = {
     USER : 'user',
@@ -17,7 +17,7 @@ const rideController = {
         const { distance } = req.body;
         
         try {
-            var ridePrice = await Prices.findOne({"type": "ride"}).cache();
+            var ridePrice = await Prices.findOne({"type": "ride"});
 
             var totalPrice = ridePrice.initialPrice + (ridePrice.pricePerKM * distance);
 
@@ -64,7 +64,7 @@ const rideController = {
                 return res.status(200).json({status: "error", message: "driver assigning failed"})
             }
 
-            clearCache(Rides.collection.collectionName);
+            //clearCache(Rides.collection.collectionName);
 
             //Send to information to the driver
             socket.sendMessage(nearByDrivers[0].socketId, "work-assigned", rideInfo);
@@ -94,7 +94,7 @@ const rideController = {
             }
             await updatedRide.save();
             
-            clearCache(Rides.collection.collectionName);
+           // clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {
@@ -119,7 +119,7 @@ const rideController = {
 
             await updatedRide.save();
             
-            clearCache(Rides.collection.collectionName);
+            //clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {
@@ -146,7 +146,7 @@ const rideController = {
 
             await updatedRide.save();
          
-            clearCache(Rides.collection.collectionName);
+            //clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {
@@ -171,7 +171,7 @@ const rideController = {
 
             await updatedRide.save();
             
-            clearCache(Rides.collection.collectionName);
+          //  clearCache(Rides.collection.collectionName);
 
             return updatedRide
         } catch (e) {

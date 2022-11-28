@@ -2,7 +2,7 @@ const { Users } = require('../model/user')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const userController = {
    
@@ -22,7 +22,7 @@ const userController = {
             if(!newUser) return res.status(200).json({status: "error",  message:"user registration failed", user: user }); 
             
             delete newUser.password;
-            clearCache(Users.collection.collectionName);
+            //clearCache(Users.collection.collectionName);
 
             const token = createAccessToken(newUser._id)
             const refreshToken = createRefreshToken(newUser._id)
@@ -97,7 +97,8 @@ const userController = {
     getUsers: async (req, res) => {
         try {
 
-            var foods = await Users.find().cache();
+//var foods = await Users.find().cache();
+        var foods = await Users.find()
             if(!foods) return res.status(200).json({status: "error",  message:"no User found"}); 
     
             return res.status(200).json({
@@ -168,7 +169,7 @@ const userController = {
             //     profileImage = newImage[0];
             // }
 
-            clearCache(Users.collection.collectionName);
+            //clearCache(Users.collection.collectionName);
             const filter = (userId) ? {_id: userId} : {_id: user.userId}
 
             if(oldPassword && newPassword) {
@@ -247,7 +248,7 @@ const userController = {
             const user = await Users.findById(userId)
             if(!user) return res.status(200).json({status: "error", message: "user not found" });
 
-            clearCache(Users.collection.collectionName);
+           // clearCache(Users.collection.collectionName);
             
             const result = await Users.findOneAndUpdate(
                 {_id: userId},
@@ -269,7 +270,8 @@ const userController = {
 
     listUsers: async (req, res) => {
         try {
-            const users = await Users.find().cache()
+           // const users = await Users.find().cache()
+            const users = await Users.find()
             
             if(!users) return res.status(200).json({status: "error", message: "no users found" });
 

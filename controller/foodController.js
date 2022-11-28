@@ -1,5 +1,5 @@
 const {Foods} = require('../model/food')
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const foodController = {
     
@@ -13,7 +13,7 @@ const foodController = {
             var newFood = await Foods.create(food);
             if(!newFood) return res.status(200).json({status: "error",  message:"Food  creating failed"}); 
     
-            clearCache(Foods.collection.collectionName);
+            //clearCache(Foods.collection.collectionName);
 
             return res.status(200).json({
                 status: "success", 
@@ -30,7 +30,8 @@ const foodController = {
     getAll: async (req, res) => {
         try {
          
-            var foods = await Foods.find().cache();
+            //var foods = await Foods.find().cache();
+            var foods = await Foods.find()
             if(!foods) return res.status(200).json({status: "error",  message:"no Food found"}); 
     
             return res.status(200).json({
@@ -133,7 +134,7 @@ const foodController = {
             
             await newFood.save();
 
-            clearCache(Foods.collection.collectionName);
+           // clearCache(Foods.collection.collectionName);
 
             if(newFood) return res.status(200).json({status: "success", message: "Food Information updated successfully", food: newFood});
             else return res.status(200).json({status: "error", message: "Food Information update failed"});
@@ -153,7 +154,7 @@ const foodController = {
     
             const result = await Foods.deleteOne({foodId: foodId})
 
-            clearCache(Foods.collection.collectionName);
+           // clearCache(Foods.collection.collectionName);
             
             if (result.deletedCount === 1) {
                 return res.status(200).json({status: "success", message:"Food Information deleted" });

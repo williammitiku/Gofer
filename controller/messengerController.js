@@ -2,7 +2,7 @@ const { Messengers } = require('../model/messenger')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const messengerController = {
 
@@ -64,7 +64,7 @@ const messengerController = {
             var newMessenger = await Messengers.create(messenger)
             if (!newMessenger) return res.status(200).json({ status: "error", message: "Messenger registration failed", messenger: messenger });
 
-            clearCache(Messengers.collection.collectionName);
+          //  clearCache(Messengers.collection.collectionName);
 
             await newMessenger.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if (!verificationCode || !defaultPassword) return res.status(200).json({ status: "error", message: "operation failed. couldn't generate verification code" })
@@ -113,7 +113,7 @@ const messengerController = {
             var newMessenger = await Messengers.create(messenger)
             if (!newMessenger) return res.status(200).json({ status: "error", message: "Messenger registration failed", messenger: messenger });
 
-            clearCache(Messengers.collection.collectionName);
+           // clearCache(Messengers.collection.collectionName);
 
             await newMessenger.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if (!verificationCode || !defaultPassword) return res.status(200).json({ status: "error", message: "operation failed. couldn't generate verification code" })
@@ -215,7 +215,7 @@ const messengerController = {
 
             const result = await Messengers.deleteOne({ email: email })
 
-            clearCache(Messengers.collection.collectionName);
+           // clearCache(Messengers.collection.collectionName);
 
             if (result.deletedCount === 1) {
                 return res.status(200).json({ status: "success", message: "Messenger deleted" });
@@ -248,7 +248,7 @@ const messengerController = {
             );
             if (result) return res.status(200).json({ status: "success", message: "Messenger status changed" });
 
-            clearCache(Messengers.collection.collectionName);
+           // clearCache(Messengers.collection.collectionName);
 
             return res.status(200).json({ status: "error", message: "Changing Messenger status failed" });
         } catch (e) {
@@ -260,7 +260,8 @@ const messengerController = {
     listMessenger: async (req, res) => {
         try {
 
-            var messengers = await Messengers.find().cache();
+          //  var messengers = await Messengers.find().cache();
+            var messengers = await Messengers.find()
             if (!messengers) return res.status(200).json({ status: "error", message: "no messengers found" });
 
             return res.status(200).json({

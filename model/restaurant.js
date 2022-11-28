@@ -28,7 +28,7 @@ const restaurant = {
     },
     speciality: {
         type: String,
-        required: false,
+        required: true,
     },
     email: {
         type: String,
@@ -44,6 +44,7 @@ const restaurant = {
     },
     restId:{
         type: String,
+        required: true,
     }
     //RESID78900        
     

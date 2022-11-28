@@ -2,7 +2,7 @@ const { Drivers } = require('../model/driver')
 const jwt = require("jsonwebtoken");
 const emailController = require('../helper/emailController')
 const { json } = require('body-parser');
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const driverController = {
    
@@ -64,7 +64,7 @@ const driverController = {
             var newDriver = await Drivers.create(driver)
             if(!newDriver) return res.status(200).json({status: "error",  message:"Driver registration failed", driver: driver }); 
             
-            clearCache(Drivers.collection.collectionName);
+           // clearCache(Drivers.collection.collectionName);
 
             await newDriver.generateVerificationToken(async (verificationCode, defaultPassword) => {
                 if(!verificationCode || !defaultPassword) return res.status(200).json({status: "error", message: "operation failed. couldn't generate verification code"})
@@ -174,7 +174,7 @@ const driverController = {
                 return res.status(200).json({status: "error", message: 'user not found'})
             }
             
-            clearCache(Drivers.collection.collectionName);
+           // clearCache(Drivers.collection.collectionName);
 
             // if(profileImage) {
             //     var newImage = imageConverter.convert([profileImage]);
@@ -264,7 +264,7 @@ const driverController = {
 
             const result = await Drivers.deleteOne({email: email})
             
-            clearCache(Drivers.collection.collectionName);
+           // clearCache(Drivers.collection.collectionName);
 
             if (result.deletedCount === 1) {
                 return res.status(200).json({status: "success", message:"Driver deleted" });
@@ -296,7 +296,7 @@ const driverController = {
                 {new:true}
                 );
 
-            clearCache(Drivers.collection.collectionName);
+           // clearCache(Drivers.collection.collectionName);
             if (result) return res.status(200).json({status: "success", message:"Driver status changed"});
 
             return res.status(200).json({status: "error",  message:"Changing Driver status failed" }); 
@@ -309,7 +309,8 @@ const driverController = {
     listDrivers: async (req, res) => {
         try {
 
-            var drivers = await Drivers.find().cache();
+            //var drivers = await Drivers.find().cache();
+            var drivers = await Drivers.find();
             if(!drivers) return res.status(200).json({status: "error",  message:"no Driver found"}); 
 
             return res.status(200).json({

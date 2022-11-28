@@ -1,5 +1,5 @@
 const { Restaurants } = require('../model/restaurant')
-const clearCache = require("../services/cache");
+//const clearCache = require("../services/cache");
 
 const restaurantController = {
     
@@ -25,7 +25,7 @@ const restaurantController = {
 
                     if(!newRestaurant) return res.status(200).json({status: "error", message: "Restaurant registration failed" });
 
-                    clearCache(Restaurants.collection.collectionName);
+                    //clearCache(Restaurants.collection.collectionName);
 
                     return res.status(200).json({status: "success", message: "Restaurant registered", restaurant: newRestaurant });
                 }
@@ -52,7 +52,7 @@ const restaurantController = {
             var newRestaurant = await Restaurants.create(restaurant);
             if(!newRestaurant) return res.status(200).json({status: "error",  message:"Restaurant  creating failed"}); 
     
-            clearCache(Restaurants.collection.collectionName);
+            //clearCache(Restaurants.collection.collectionName);
 
             return res.status(200).json({
                 status: "success", 
@@ -69,7 +69,8 @@ const restaurantController = {
     getAll: async (req, res) => {
         try {
 
-            var restaurants = await Restaurants.find().cache();
+           // var restaurants = await Restaurants.find().cache();
+           var restaurants = await Restaurants.find();
             if(!restaurants) return res.status(200).json({status: "error",  message:"no Restaurant found"}); 
     
             return res.status(200).json({
@@ -104,10 +105,11 @@ const restaurantController = {
         try {
             const {restId}  = req.body;
 
-            var restaurant = await Restaurants.find({restId: restId}).cache();
+            //var restaurant = await Restaurants.find({restId: restId}).cache();
+            var restaurant = await Restaurants.find({restId: restId})
             if(!restaurant) return res.status(200).json({status: "error",  message:"delivery time not found"}); 
     
-            clearCache(Restaurants.collection.collectionName);
+            //clearCache(Restaurants.collection.collectionName);
             
             const result = await Restaurants.deleteOne({restId: restId})
             if (result.deletedCount === 1) {
@@ -135,11 +137,11 @@ const restaurantController = {
                 isDisabled
             } = req.body;
             
-            const restaurant = await Restaurants.findOne({restId: restId}).cache()
+            const restaurant = await Restaurants.findOne({restId: restId})
 
             if(!restaurant) return res.status(200).json({status: "error", message: 'Restaurant Information not found'})
 
-            clearCache(Restaurants.collection.collectionName);
+           // clearCache(Restaurants.collection.collectionName);
             
             const newRestaurant = await Restaurants.findOneAndUpdate(
                 {restId: restId},
